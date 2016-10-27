@@ -12,7 +12,7 @@ Vue.use(Router){{#if_eq lintConfig "airbnb"}};{{/if_eq}}
 
 const router = new Router({
   mode: 'history',
-  scrollBehavior: () => {{ y: 0 }},
+  scrollBehavior: () => ({ y: 0 }),
   routes: [
     {
       path: '/',
@@ -23,6 +23,7 @@ const router = new Router({
 }){{#if_eq lintConfig "airbnb"}};{{/if_eq}}
 
 /* eslint-disable no-new */
+
 const app = new Vue({
   el: '#app',
   router,

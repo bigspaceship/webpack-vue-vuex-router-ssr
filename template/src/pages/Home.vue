@@ -15,7 +15,7 @@ export default {
 }{{#if_eq lintConfig "airbnb"}};{{/if_eq}}
 </script>
 
-<!-- Add "scoped" attribute to limit SCSS to this component only -->
+<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style lang="scss" scoped>
 #home {
   text-align: center;

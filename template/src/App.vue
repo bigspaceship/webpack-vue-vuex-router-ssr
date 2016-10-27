@@ -14,7 +14,7 @@ export default {
 html {
   height: 100%;
   width: 100%;
-  font-size: 62.5;
+  font-size: 62.5%;
 }
 
 body {
