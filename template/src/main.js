@@ -4,6 +4,7 @@ import App from './App';
 import store from './store';
 import Home from './pages/Home';
 import About from './pages/About';
+import Wildcard from './pages/Wildcard';
 
 Vue.use(Router);
 
@@ -20,6 +21,11 @@ const router = new Router({
       path: '/about',
       name: 'about',
       component: About,
+    },
+    {
+      path: '*',
+      name: 'wildcard',
+      component: Wildcard,
     },
   ],
 });
