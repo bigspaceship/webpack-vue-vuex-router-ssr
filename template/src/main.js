@@ -3,6 +3,7 @@ import Router from 'vue-router';
 import App from './App';
 import store from './store';
 import Home from './pages/Home';
+import About from './pages/About';
 
 Vue.use(Router);
 
@@ -14,6 +15,11 @@ const router = new Router({
       path: '/',
       name: 'home',
       component: Home,
+    },
+    {
+      path: '/about',
+      name: 'about',
+      component: About,
     },
   ],
 });

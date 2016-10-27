@@ -1,6 +1,7 @@
 <template>
   <div id="home">
     <h1>\{{msg}}</h1>
+    <router-link :to="'about'">About</router-link>
     <gif></gif>
   </div>
 </template>
