@@ -6,19 +6,19 @@
 </template>
 
 <script>
-import Gif from '../components/Gif'{{#if_eq lintConfig "airbnb"}};{{/if_eq}}
+import Gif from '../components/Gif';
 
 export default {
   name: 'home',
   components: {
-    Gif{{#if_eq lintConfig "airbnb"}},{{/if_eq}}
+    Gif,
   },
-  data{{#unless_eq lintConfig "airbnb"}} {{/unless_eq}}() {
+  data() {
     return {
-      msg: 'Vues from the ship'{{#if_eq lintConfig "airbnb"}},{{/if_eq}}
-    }{{#if_eq lintConfig "airbnb"}};{{/if_eq}}
-  }{{#if_eq lintConfig "airbnb"}},{{/if_eq}}
-}{{#if_eq lintConfig "airbnb"}};{{/if_eq}}
+      msg: 'Vues from the ship',
+    };
+  },
+};
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
