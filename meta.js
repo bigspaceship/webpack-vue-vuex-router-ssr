@@ -24,22 +24,6 @@ module.exports = {
       "type": "string",
       "message": "Author"
     },
-    "build": {
-      "type": "list",
-      "message": "Vue build",
-      "choices": [
-        {
-          "name": "Runtime + Compiler: recommended for most users",
-          "value": "standalone",
-          "short": "standalone"
-        },
-        {
-          "name": "Runtime-only: about 6KB lighter min+gzip, but templates (or any Vue-specific HTML) are ONLY allowed in .vue files - render functions are required elsewhere",
-          "value": "runtime",
-          "short": "runtime"
-        }
-      ]
-    },
     "lint": {
       "type": "confirm",
       "message": "Use ESLint to lint your code?"
