@@ -1,10 +1,10 @@
-import Vue from 'vue'{{#if_eq lintConfig "airbnb"}};{{/if_eq}}
-import Vuex from 'vuex'{{#if_eq lintConfig "airbnb"}};{{/if_eq}}
-import { state, mutations } from './mutations'{{#if_eq lintConfig "airbnb"}};{{/if_eq}}
+import Vue from 'vue';
+import Vuex from 'vuex';
+import { state, mutations } from './mutations';
 
-Vue.use(Vuex){{#if_eq lintConfig "airbnb"}};{{/if_eq}}
+Vue.use(Vuex);
 
 export default new Vuex.Store({
   state,
-  mutations{{#if_eq lintConfig "airbnb"}},{{/if_eq}}
-}){{#if_eq lintConfig "airbnb"}};{{/if_eq}}
+  mutations,
+});
