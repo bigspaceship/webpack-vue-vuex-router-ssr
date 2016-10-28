@@ -5,16 +5,12 @@
 </template>
 
 <script>
-import Vue from 'vue';
-import VueResource from 'vue-resource';
-import { mapMutations } from 'vuex';
-
-Vue.use(VueResource);
+import { mapActions } from 'vuex';
 
 export default {
   created() {
     const tag = 'big+spaceship';
-    this.$store.commit('fetchGif', {tag});
+    this.$store.dispatch('fetchGif', {tag});
   },
   computed: {
     gif() {
