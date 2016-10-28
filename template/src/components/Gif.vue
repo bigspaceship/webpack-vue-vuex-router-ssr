@@ -13,7 +13,7 @@ Vue.use(VueResource);
 
 export default {
   created() {
-    const tag = 'big + spaceship';
+    const tag = 'big+spaceship';
     this.$store.commit('fetchGif', {tag});
   },
   computed: {
