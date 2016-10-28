@@ -21,8 +21,5 @@ html {
 
 body {
   height: 100%;
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialased;
-  -moz-osx-font-smoothing: grayscale;
 }
 </style>
