@@ -12,14 +12,9 @@ import { mapMutations } from 'vuex';
 Vue.use(VueResource);
 
 export default {
-  data() {
-    return {
-      gif: null,
-      error: null,
-    };
-  },
   created() {
-    this.$store.commit('fetchGif', {'big + spaceship'})
+    const tag = 'big + spaceship';
+    this.$store.commit('fetchGif', {tag});
   },
   computed: {
     gif() {
