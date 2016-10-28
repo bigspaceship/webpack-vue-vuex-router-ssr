@@ -1,16 +1,14 @@
-var path = require('path')
-var config = require('../config')
-var utils = require('./utils')
-var webpack = require('webpack')
-var merge = require('webpack-merge')
-var baseWebpackConfig = require('./webpack.base.conf')
-var ExtractTextPlugin = require('extract-text-webpack-plugin')
-var HtmlWebpackPlugin = require('html-webpack-plugin')
-var env = {{#if_or unit e2e}}process.env.NODE_ENV === 'testing'
-  ? require('../config/test.env')
-  : {{/if_or}}config.build.env
+const path = require('path');
+const config = require('../config');
+const utils = require('./utils');
+const webpack = require('webpack');
+const merge = require('webpack-merge');
+const baseWebpackConfig = require('./webpack.base.conf');
+const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const env = config.build.env;
 
-var webpackConfig = merge(baseWebpackConfig, {
+let webpackConfig = merge(baseWebpackConfig, {
   module: {
     loaders: utils.styleLoaders({ sourceMap: config.build.productionSourceMap, extract: true })
   },
@@ -43,15 +41,13 @@ var webpackConfig = merge(baseWebpackConfig, {
     // you can customize output by editing /index.html
     // see https://github.com/ampedandwired/html-webpack-plugin
     new HtmlWebpackPlugin({
-      filename: {{#if_or unit e2e}}process.env.NODE_ENV === 'testing'
-        ? 'index.html'
-        : {{/if_or}}config.build.index,
+      filename: config.build.index,
       template: 'index.html',
       inject: true,
       minify: {
         removeComments: true,
         collapseWhitespace: true,
-        removeAttributeQuotes: true
+        removeAttributeQuotes: false
         // more options:
         // https://github.com/kangax/html-minifier#options-quick-reference
       },
@@ -82,7 +78,7 @@ var webpackConfig = merge(baseWebpackConfig, {
 })
 
 if (config.build.productionGzip) {
-  var CompressionWebpackPlugin = require('compression-webpack-plugin')
+  const CompressionWebpackPlugin = require('compression-webpack-plugin');
 
   webpackConfig.plugins.push(
     new CompressionWebpackPlugin({
@@ -96,7 +92,7 @@ if (config.build.productionGzip) {
       threshold: 10240,
       minRatio: 0.8
     })
-  )
+  );
 }
 
-module.exports = webpackConfig
+module.exports = webpackConfig;

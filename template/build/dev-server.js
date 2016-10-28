@@ -1,70 +1,77 @@
 require('./check-versions')()
-var config = require('../config')
+const config = require('../config');
 if (!process.env.NODE_ENV) process.env.NODE_ENV = config.dev.env
-var path = require('path')
-var express = require('express')
-var webpack = require('webpack')
-var opn = require('opn')
-var proxyMiddleware = require('http-proxy-middleware')
-var webpackConfig = {{#if_or unit e2e}}process.env.NODE_ENV === 'testing'
-  ? require('./webpack.prod.conf')
-  : {{/if_or}}require('./webpack.dev.conf')
+const path = require('path');
+const express = require('express');
+const webpack = require('webpack');
+const MFS = require('memory-fs');
+const proxyMiddleware = require('http-proxy-middleware');
+const serverWebpackConfig = require('./webpack.server.conf');
 
-// default port where dev server listens for incoming traffic
-var port = process.env.PORT || config.dev.port
+const clientWebpackConfig = (process.env.NODE_ENV === 'production'
+  ? require('./webpack.client.prod.conf')
+  : require('./webpack.client.dev.conf'));
+
 // Define HTTP proxies to your custom API backend
 // https://github.com/chimurai/http-proxy-middleware
-var proxyTable = config.dev.proxyTable
+const proxyTable = config.dev.proxyTable;
 
-var app = express()
-var compiler = webpack(webpackConfig)
+// sets up development server
+// compiles client-side application
+// compiles server-side application and calls onUpdate as it compiles
+module.exports = function setupDevServer (application, onUpdate) {
+  const clientCompiler = webpack(clientWebpackConfig);
 
-var devMiddleware = require('webpack-dev-middleware')(compiler, {
-  publicPath: webpackConfig.output.publicPath,
-  stats: {
-    colors: true,
-    chunks: false
-  }
-})
+  const devMiddleware = require('webpack-dev-middleware')(clientCompiler, {
+    publicPath: clientWebpackConfig.output.publicPath,
+    stats: {
+      colors: true,
+      chunks: false
+    }
+  });
 
-var hotMiddleware = require('webpack-hot-middleware')(compiler)
-// force page reload when html-webpack-plugin template changes
-compiler.plugin('compilation', function (compilation) {
-  compilation.plugin('html-webpack-plugin-after-emit', function (data, cb) {
-    hotMiddleware.publish({ action: 'reload' })
-    cb()
+  const hotMiddleware = require('webpack-hot-middleware')(clientCompiler);
+  // force page reload when html-webpack-plugin template changes
+  clientCompiler.plugin('compilation', function (compilation) {
+    compilation.plugin('html-webpack-plugin-after-emit', function (data, cb) {
+      hotMiddleware.publish({ action: 'reload' });
+      cb();
+    });
+  });
+
+  // proxy api requests
+  Object.keys(proxyTable).forEach(function (context) {
+    var options = proxyTable[context];
+    if (typeof options === 'string') {
+      options = { target: options };
+    }
+    application.use(proxyMiddleware(context, options));
   })
-})
 
-// proxy api requests
-Object.keys(proxyTable).forEach(function (context) {
-  var options = proxyTable[context]
-  if (typeof options === 'string') {
-    options = { target: options }
-  }
-  app.use(proxyMiddleware(context, options))
-})
+  // handle fallback for HTML5 history API
+  application.use(require('connect-history-api-fallback')());
 
-// handle fallback for HTML5 history API
-app.use(require('connect-history-api-fallback')())
+  // serve webpack bundle output
+  application.use(devMiddleware);
 
-// serve webpack bundle output
-app.use(devMiddleware)
+  // enable hot-reload and state-preserving
+  // compilation error display
+  application.use(hotMiddleware);
 
-// enable hot-reload and state-preserving
-// compilation error display
-app.use(hotMiddleware)
+  // serve pure static assets
+  const staticPath = path.posix.join(config.dev.assetsPublicPath, config.dev.assetsSubDirectory);
+  application.use(staticPath, express.static('./static'));
 
-// serve pure static assets
-var staticPath = path.posix.join(config.dev.assetsPublicPath, config.dev.assetsSubDirectory)
-app.use(staticPath, express.static('./static'))
-
-module.exports = app.listen(port, function (err) {
-  if (err) {
-    console.log(err)
-    return
-  }
-  var uri = 'http://localhost:' + port
-  console.log('Listening at ' + uri + '\n')
-  opn(uri)
-})
+  // watch and update server renderer
+  const serverCompiler = webpack(serverWebpackConfig);
+  const mfs = new MFS();
+  const outputPath = path.join(serverWebpackConfig.output.path, serverWebpackConfig.output.filename);
+  serverCompiler.outputFileSystem = mfs;
+  serverCompiler.watch({}, (error, stats) => {
+    if (error) throw error;
+    stats = stats.toJson();
+    stats.errors.forEach(error => console.error(error));
+    stats.warnings.forEach(warning => console.warn(warning));
+    onUpdate(mfs.readFileSync(outputPath, 'utf-8'));
+  })
+}

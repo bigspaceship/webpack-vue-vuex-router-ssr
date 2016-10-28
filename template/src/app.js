@@ -1,6 +1,8 @@
 import Vue from 'vue';
 import Router from 'vue-router';
-import App from './App';
+import { sync } from 'vuex-router-sync';
+
+import Application from './Application';
 import store from './store';
 import Home from './pages/Home';
 
@@ -18,13 +20,15 @@ const router = new Router({
   ],
 });
 
-/* eslint-disable no-new */
+// sync the router with the Vuex store.
+// essentially creates store.state.route
+sync(store, router);
 
-const app = new Vue({
-  el: '#app',
+/* eslint-disable no-new */
+const application = new Vue({
   router,
   store,
-  ...App,
+  ...Application,
 });
 
-export { app, router };
+export { application, router, store };
