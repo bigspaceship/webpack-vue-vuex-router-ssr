@@ -5,6 +5,8 @@ import { sync } from 'vuex-router-sync';
 import Application from './Application';
 import store from './store';
 import Home from './pages/Home';
+import About from './pages/About';
+import Wildcard from './pages/Wildcard';
 
 Vue.use(Router);
 
@@ -16,6 +18,14 @@ const router = new Router({
       path: '/',
       name: 'home',
       component: Home,
+    }, {
+      path: '/about',
+      name: 'about',
+      component: About,
+    }, {
+      path: '*',
+      name: 'wildcard',
+      component: Wildcard,
     },
   ],
 });
