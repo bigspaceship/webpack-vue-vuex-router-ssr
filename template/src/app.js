@@ -2,43 +2,50 @@ import Vue from 'vue';
 import Router from 'vue-router';
 import { sync } from 'vuex-router-sync';
 
-import Application from './Application';
-import store from './store';
-import Home from './pages/Home';
-import About from './pages/About';
-import Wildcard from './pages/Wildcard';
+import Application from './Application.vue';
+import { createStore } from './store';
 
-Vue.use(Router);
+export function createApp() {
+  const store = createStore();
 
-const router = new Router({
-  mode: 'history',
-  scrollBehavior: () => ({ y: 0 }),
-  routes: [
-    {
-      path: '/',
-      name: 'home',
-      component: Home,
-    }, {
-      path: '/about',
-      name: 'about',
-      component: About,
-    }, {
-      path: '*',
-      name: 'wildcard',
-      component: Wildcard,
-    },
-  ],
-});
+  // route-level code splitting
+  const Home = () => import ('./pages/Home.vue');
+  const About = () => import ('./pages/About.vue');
+  const Wildcard = () => import ('./pages/Wildcard.vue');
 
-// sync the router with the Vuex store.
-// essentially creates store.state.route
-sync(store, router);
+  Vue.use(Router);
 
-/* eslint-disable no-new */
-const application = new Vue({
-  router,
-  store,
-  ...Application,
-});
+  const router = new Router({
+    mode: 'history',
+    scrollBehavior: () => ({ x: 0, y: 0 }),
+    routes: [
+      {
+        path: '/',
+        name: 'home',
+        component: Home,
+      }, {
+        path: '/about',
+        name: 'about',
+        component: About,
+      }, {
+        path: '*',
+        name: 'wildcard',
+        component: Wildcard,
+      },
+    ],
+  });
 
-export { application, router, store };
+  // sync the router with the Vuex store.
+  // essentially creates store.state.route
+  sync(store, router);
+
+  /* eslint-disable no-new */
+  const application = new Vue({
+    router,
+    store,
+    render: h => h(Application),
+  });
+
+  return { application, router, store };
+}
+
