@@ -2,7 +2,7 @@ import Vue from 'vue';
 import Router from 'vue-router';
 import { sync } from 'vuex-router-sync';
 
-import Application from './Application.vue';
+import App from './App.vue';
 import { createStore } from './store';
 
 export function createApp() {
@@ -40,12 +40,12 @@ export function createApp() {
   sync(store, router);
 
   /* eslint-disable no-new */
-  const application = new Vue({
+  const app = new Vue({
     router,
     store,
-    render: h => h(Application),
+    render: h => h(App),
   });
 
-  return { application, router, store };
+  return { app, router, store };
 }
 
