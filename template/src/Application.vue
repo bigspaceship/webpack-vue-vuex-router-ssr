@@ -1,10 +1,12 @@
 <template>
-  <router-view class="view"></router-view>
+  <div id="application">
+    <router-view class="view"></router-view>
+  </div>
 </template>
 
 <script>
 export default {
-  name: 'app',
+  name: 'application',
 };
 </script>
 
@@ -19,8 +21,5 @@ html {
 
 body {
   height: 100%;
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialased;
-  -moz-osx-font-smoothing: grayscale;
 }
 </style>
