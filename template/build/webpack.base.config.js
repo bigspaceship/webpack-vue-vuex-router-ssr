@@ -11,69 +11,67 @@ const isProd = process.env.NODE_ENV === 'production';
 
 // check env & config/index.js to decide weither to enable CSS Sourcemaps for the
 // various preprocessor loaders added to vue-loader at the end of this file
-const cssSourceMapDev = (!isProd && config.dev.cssSourceMap);
-const cssSourceMapProd = (isProd && config.build.productionSourceMap);
+const cssSourceMapDev = !isProd && config.dev.cssSourceMap;
+const cssSourceMapProd = isProd && config.build.productionSourceMap;
 const useCssSourceMap = cssSourceMapDev || cssSourceMapProd;
 
 module.exports = {
-  devtool: isProd ? false : '#cheap-module-source-map', 
+  devtool: isProd ? false : '#cheap-module-source-map',
   output: {
     path: path.resolve(__dirname, '../dist'),
     publicPath: '/dist/',
-    filename: '[name].[chunkhash].js'
+    filename: '[name].[chunkhash].js',
   },
   resolve: {
-    extensions: ['', '.js', '.vue'],
-    fallback: [path.join(__dirname, '../node_modules')],
     alias: {
-      'src': path.resolve(__dirname, '../src'),
-      'components': path.resolve(__dirname, '../src/components'),
-      'public': path.resolve(__dirname, '../public')
-    }
+      src: path.resolve(__dirname, '../src'),
+      components: path.resolve(__dirname, '../src/components'),
+      public: path.resolve(__dirname, '../public'),
+    },
   },
   module: {
     noParse: /es6-promise\.js$/, // avoid webpack shimming process
     rules: [
       {
         test: /\.vue$/,
-        loader: 'vue',
-        options: vueConfig
+        loader: 'vue-loader',
+        options: vueConfig,
       },
       {
         test: /\.js$/,
         loader: 'babel-loader',
-        exclude: /node_modules/
+        exclude: /node_modules/,
       },
       {
         test: /\.json$/,
-        loader: 'json-loader'
+        loader: 'json-loader',
       },
       {
         test: /\.(png|jpe?g|gif|svg)(\?.*)?$/,
         loader: 'url-loader',
         query: {
           limit: 10000,
-          name: '[name].[ext]?[hash]'
-        }
+          name: '[name].[ext]?[hash]',
+        },
       },
       {
         test: /\.(woff2?|eot|ttf|otf)(\?.*)?$/,
         loader: 'url-loader',
         query: {
           limit: 10000,
-          name: '[name].[ext]?[hash]'
-        }
+          name: '[name].[ext]?[hash]',
+        },
       },
       {
         test: /\.css$/,
         use: isProd
           ? ExtractTextPluginn.extract({
-            use: 'css-loader?minimize',
-            fallback: 'vue-style-loader'
-          })
-        : ['vue-style-loader', 'css-loader']
+              use: 'css-loader?minimize',
+              fallback: 'vue-style-loader',
+            })
+          : ['vue-style-loader', 'css-loader'],
       },
-    ]
+    ],
   },
   performance: {
     maxEntrypointSize: 300000,
@@ -87,6 +85,6 @@ module.exports = {
         new ExtractTextPlugin({
           filename: 'common.[chunkhash].css',
         }),
-    ]
-  : [new FriendlyErrosPlugin()],
+      ]
+    : [new FriendlyErrorsPlugin()],
 };

@@ -8,14 +8,15 @@ const clientConfig = require('./webpack.client.config');
 const serverConfig = require('./webpack.server.config');
 const config = require('../config');
 
-require('./check-versions')();
-if (!process.env.NODE_ENV) process.env.NODE_ENV = config.dev.env;
+if (!process.env.NODE_ENV) {
+  process.env.NODE_ENV = config.dev.env;
+}
 
 const readFile = (fs, file) => {
   try {
     return fs.readFileSync(path.join(clientConfig.output.path, file), 'utf-8');
-  } catch (e) {};
-}
+  } catch (e) {}
+};
 
 // Define HTTP proxies to your custom API backend
 const proxyTable = config.dev.proxyTable;
@@ -23,23 +24,25 @@ const proxyTable = config.dev.proxyTable;
 // sets up development server
 // compiles client-side application
 // compiles server-side application and calls onUpdate as it compiles
-module.exports = function setupDevServer (app, templatePath, cb) {
+module.exports = function setupDevServer(app, templatePath, cb) {
   let bundle;
   let template;
   let clientManifest;
 
   let ready;
-  const readyPromise = new Promise(r => { ready = r });
+  const readyPromise = new Promise(r => {
+    ready = r;
+  });
   const update = () => {
     if (bundle && clientManifest) {
       ready();
-      cb(bundnle, {
+      cb(bundle, {
         template,
-        clientManifest
+        clientManifest,
       });
     }
   };
-  
+
   // read template from disk and watch
   template = fs.readFileSync(templatePath, 'utf-8');
   chokidar.watch(templatePath).on('change', () => {
@@ -53,25 +56,22 @@ module.exports = function setupDevServer (app, templatePath, cb) {
   clientConfig.output.filename = '[name].js';
   clientConfig.plugins.push(
     new webpack.HotModuleReplacementPlugin(),
-    new Webpack.NoEmitOnErrorsPlugin()
+    new webpack.NoEmitOnErrorsPlugin()
   );
 
   // dev middleware
   const clientCompiler = webpack(clientConfig);
   const devMiddleware = require('webpack-dev-middleware')(clientCompiler, {
     publicPath: clientConfig.output.publicPath,
-    noInfo: true
+    noInfo: true,
   });
   app.use(devMiddleware);
   clientCompiler.plugin('done', stats => {
     stats = stats.toJson();
     stats.errors.forEach(err => console.error(err));
     stats.warnings.forEach(err => console.warn(err));
-    if (stats.errors.length) return
-    clientManifest = JSON.parse(readFile(
-      devMiddleware.fileSystem,
-      'vue-ssr-client-manifest.json'
-    ));
+    if (stats.errors.length) return;
+    clientManifest = JSON.parse(readFile(devMiddleware.fileSystem, 'vue-ssr-client-manifest.json'));
     update();
   });
 
@@ -79,13 +79,13 @@ module.exports = function setupDevServer (app, templatePath, cb) {
   app.use(require('webpack-hot-middleware')(clientCompiler, { heartbeat: 5000 }));
 
   // proxy api requests
-  Object.keys(proxyTable).forEach(function (context) {
+  Object.keys(proxyTable).forEach(function(context) {
     var options = proxyTable[context];
     if (typeof options === 'string') {
       options = { target: options };
     }
     app.use(proxyMiddleware(context, options));
-  })
+  });
 
   // watch and update server renderer
   const serverCompiler = webpack(serverConfig);
@@ -102,4 +102,4 @@ module.exports = function setupDevServer (app, templatePath, cb) {
   });
 
   return readyPromise;
-}
+};

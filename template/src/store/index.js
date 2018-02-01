@@ -11,10 +11,15 @@ export function createStore() {
     },
     actions: {
       FETCH_GIF: ({ commit, state }, { tag }) => {
-        return axios.request('http://api.giphy.com/v1/gifs/random?api_key=dc6zaTOxFJmzC&rating=pg-13&tag=' + tag)
-          .then((response) => {
-            state.gif = response.data.data.image_url;
+        return axios.request(`http://api.giphy.com/v1/gifs/random?api_key=dc6zaTOxFJmzC&rating=pg-13&tag=${tag}`)
+          .then(response => {
+            commit('SET_GIF', { response });
           });
+      },
+    },
+    mutations: {
+      SET_GIF: (state, { response }) => {
+        state.gif = response.data.data.image_url;
       },
     },
   });

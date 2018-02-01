@@ -25,12 +25,12 @@ const { app, router, store } = createApp();
 // eslint-disable-next-line
 if (window.__INITIAL_STATE__) {
   // eslint-disable-next-line
-  store.replaceState(window.INITIAL_STATE);
+  store.replaceState(window.__INITIAL_STATE__);
 }
 
 // wait u ntil router has resolved all async before hooks
 // ans async components...
-route.onReady(() => {
+router.onReady(() => {
   // Add router hook for handling asyncData.
   // Doing it after initial route is resolved so that we don't double-fetch
   // the data that we already have. Using router.beforeResolve() so that all
@@ -42,15 +42,17 @@ route.onReady(() => {
     const activated = matched.filter((c, i) => {
       return diffed || (diffed = prevMatched[i] !== c);
     });
-    if (!activated.length) {
+    const asyncDataHooks = activated.map(c => c.asyncData).filter(_=>_);
+    if (!asyncDataHooks.length) {
       return next();
     }
     Promise.all(
-      activated.map(c => {
-        if (c.asyncData) {
-          return c.asyncData({ store, route: to });
-        }
-      })
+      asyncDataHooks.map(hook =>
+        hook({
+          store,
+          route: to,
+        }) 
+      )
     )
       .then(() => {
         next();

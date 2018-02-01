@@ -11,11 +11,16 @@ export default context => {
   return new Promise((resolve, reject) => {
     const s = isDev && Date.now();
     const { app, router, store } = createApp();
-    const meta = app.$meta();
+
+    const { url } = context;
+    const fullPath = router.resolve(url).route.fullPath;
+
+    if (fullPath !== url) {
+      reject({ url: fullPath })
+    }
 
     // set router's location
-    router.push(context.url);
-    context.meta = meta;
+    router.push(url);
 
     router.onReady(() => {
       const matchedComponents = router.getMatchedComponents();
@@ -28,18 +33,17 @@ export default context => {
       // which is resolved when the action is complete and store state has been
       // updated.
       Promise.all(
-        matchedComponents.map(components => {
-          return (
-            component.asyncData &&
-            component.asyncData({
+        matchedComponents.map(
+          ({ asyncData }) =>
+            asyncData &&
+            asyncData({
               store,
               route: router.currentRoute,
-            })
-          );
-        })
+            }) 
+        )
       )
         .then(() => {
-          if (!isDev) {
+          if (isDev) {
             // eslint-disable-next-line
             console.log(`data pre-fetch: ${Date.now() - s}ms`);
           }
