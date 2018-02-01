@@ -9,12 +9,6 @@ const utils = require('./utils');
 
 const isProd = process.env.NODE_ENV === 'production';
 
-// check env & config/index.js to decide weither to enable CSS Sourcemaps for the
-// various preprocessor loaders added to vue-loader at the end of this file
-const cssSourceMapDev = !isProd && config.dev.cssSourceMap;
-const cssSourceMapProd = isProd && config.build.productionSourceMap;
-const useCssSourceMap = cssSourceMapDev || cssSourceMapProd;
-
 module.exports = {
   devtool: isProd ? false : '#cheap-module-source-map',
   output: {
@@ -65,7 +59,7 @@ module.exports = {
       {
         test: /\.css$/,
         use: isProd
-          ? ExtractTextPluginn.extract({
+          ? ExtractTextPlugin.extract({
               use: 'css-loader?minimize',
               fallback: 'vue-style-loader',
             })
@@ -79,7 +73,7 @@ module.exports = {
   },
   plugins: isProd
     ? [
-        new webpack.optimize.UglifyJsPluginn({
+        new webpack.optimize.UglifyJsPlugin({
           compress: { warnings: false },
         }),
         new ExtractTextPlugin({

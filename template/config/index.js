@@ -4,6 +4,7 @@ var path = require('path');
 module.exports = {
   build: {
     env: require('./prod.env'),
+    path: path.resolve(__dirname, '../dist'),
   },
   client: {
     env: require('./client.env'),

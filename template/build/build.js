@@ -9,20 +9,25 @@ const path = require('path');
 const chalk = require('chalk');
 const webpack = require('webpack');
 const config = require('../config');
-const webpackConfig = require('./webpack.prod.conf');
+const clientConfig = require('./webpack.client.config');
+const serverConfig = require('./webpack.server.config');
 
 const spinner = ora('building for production...');
 spinner.start();
 
-rm (path.join(config.build.assetsRoot, config.build.assetsSubDirectory), err => {
-  if (err) throw err
-  webpack(webpackConfig, (err, state) => {
+rm (config.build.path, err => {
+  if (err) throw err;
+
+  function build(err, state) {
+  };
+
+  webpack([clientConfig, serverConfig], (err, stats) => {
     spinner.stop();
     if (err) throw err;
     process.stdout.write(stats.toString({
       colors: true,
       modules: false,
-      children: false,
+      children: true,
       chunks: false,
       chunkModules: false,
     }) + '\n\n');
@@ -33,10 +38,5 @@ rm (path.join(config.build.assetsRoot, config.build.assetsSubDirectory), err => 
     }
 
     console.log(chalk.cyan(' Build complete.\n'));
-    console.log(chalk.yellow(
-      '  Tip:\n' +
-      '  Built files are meant to be served over an HTTP server.\n' +
-      '  Opening index.html over file:// won\'t work.\n'
-    ))
   });
 });
