@@ -5,7 +5,6 @@ const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const FriendlyErrorsPlugin = require('friendly-errors-webpack-plugin');
 
 const config = require('../config');
-const utils = require('./utils');
 
 const isProd = process.env.NODE_ENV === 'production';
 

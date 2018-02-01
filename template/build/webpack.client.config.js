@@ -3,7 +3,6 @@ const merge = require('webpack-merge');
 const SWPrecachePlugin = require('sw-precache-webpack-plugin');
 const VueSSRClientPlugin = require('vue-server-renderer/client-plugin');
 const base = require('./webpack.base.config');
-const utils = require('./utils');
 const config = require('../config');
 const env = config.client.env;
 
