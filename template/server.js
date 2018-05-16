@@ -1,106 +1,110 @@
-process.env.VUE_ENV = 'server'
-const isProduction = process.env.NODE_ENV === 'production';
-
 const fs = require('fs');
 const path = require('path');
-const resolve = file => path.resolve(__dirname, file);
-const express = require('express');
-const application = express();
-const favicon = require('serve-favicon');
-const createBundleRenderer = require('vue-server-renderer').createBundleRenderer;
-const serialize = require('serialize-javascript');
 const opn = require('opn');
+const LRU = require('lru-cache');
+const express = require('express');
+const favicon = require('serve-favicon');
+const compression = require('compression');
+const microcache = require('route-cache');
+const resolve = file => path.resolve(__dirname, file);
+const { createBundleRenderer } = require('vue-server-renderer');
 
-// splits index.html to head and tail
-// head is index.html up to applicationHTML
-// tail is index.html from applicationHTML to end of file
-const indexHTML = (() => {
-  const applicationHTML = '<div id="application"></div>';
-  const template = fs.readFileSync(
-    resolve((isProduction ? './dist/index.html' : './index.html')), 
-    'utf-8');
-  const index = template.indexOf(applicationHTML);
+const isProd = process.env.NODE_ENV === 'production';
+const useMicroCache = process.env.MICRO_CACHE !== 'false';
+const serverInfo = 
+  `express/${require('express/package.json').version} ` +
+  `vue-server-renderer/${require('vue-server-renderer/package.json').version}`;
 
-  return {
-    head: template.slice(0, index),
-    tail: template.slice(index + applicationHTML.length),
-  }
-})();
+const app = express();
 
 // create renderer with createBundleRenderer
 // and a LRU cache of 15 mins with max capacity of 1000
-function createRenderer (bundle) {
-  return createBundleRenderer(bundle, {
-    cache: require('lru-cache')({
+function createRenderer (bundle, options) {
+  return createBundleRenderer(bundle, Object.assign(options, {
+    cache: LRU({
       max: 1000,
       maxAge: 1000 * 60 * 15,
     }),
-  });
+    basedir: resolve('./dist'),
+    runInNewContext: false,
+  }))
 }
 
-// production renderer works off of a pre-built bundle
-// development renderer works off of a bundle that's being re-built on every change
-// both bundles are built with webpack
 let renderer;
-if (isProduction) {
-  renderer = createRenderer(fs.readFileSync(
-    resolve('./dist/server-bundle.js'), 
-    'utf-8'
-  ));
-} else {
-  require('./build/dev-server')(application, bundle => {
-    renderer = createRenderer(bundle);
+let readyPromise;
+const templatePath = resolve('./src/index.template.html');
+if (isProd) {
+  const template = fs.readFileSync(templatePath, 'utf-8');
+  const bundle = require('./dist/vue-ssr-server-bundle.json');
+  const clientManifest = require('./dist/vue-ssr-client-manifest.json');
+
+  renderer = createRenderer(bundle, {
+    template,
+    clientManifest,
   });
+} else {
+  readyPromise =  require('./build/setup-dev-server')(
+    app,
+    templatePath,
+    (bundle, options) => {
+      renderer = createRenderer(bundle, options);
+    }
+  )
 }
 
-application.use(favicon(resolve('./static/favicon.ico')));
-if(isProduction) {
-  application.use('/static', express.static(resolve('./dist/static')));
-}
+const serve = (path, cache) => express.static(resolve(path), {
+  maxAge: cache && isProd ? 1000 * 60 * 60 * 24 * 30 : 0,
+});
 
-// writes the head of index.html
-// then injects the initial state of the application
-// then writes the application as it's being rendered
-// finally writes the tail of index.html
-application.get('*', (request, response) => {
-  if (!renderer) {
-    return response.end('Compiling... Refresh in a moment!');
+app.use(compression({ threshold: 0  }));
+app.use(favicon(resolve('./public/favicon.ico')));
+app.use('/dist', serve('./dist', true));
+app.use('/public', serve('./public', true));
+app.use('/manifest.json', serve('./manifest.json', true));
+app.use('/service-worker.js', serve('./dist/service-worker.js'));
+
+app.use(microcache.cacheSeconds(1, req => useMicroCache && req.originalUrl));
+
+function render (req, res) {
+  const s = Date.now();
+
+  res.setHeader("Content-Type", "text/html");
+  res.setHeader("Server", serverInfo);
+
+  const handleError = err => {
+    if (err.url) {
+      res.redirect(err.url)
+    } else if (err.code === 404) {
+      res.status(404).send('404 | Page Not Found');
+    } else {
+      // Render Error Page or Redirect
+      res.status(500).send('500 | Internal Server Error');
+      console.error(`error during render : ${req.url}`);
+      console.error(err.stack);
+    }
   }
 
-  const timestamp = Date.now();
-  let context = { url: request.originalUrl };
-  const renderStream = renderer.renderToStream(context);
-  let firstChunk = true;
-
-  response.write(indexHTML.head);
-
-  renderStream.on('data', chunk => {
-    if(firstChunk) {
-      // embed initial store state
-      if(context.initialState) {
-        response.write(
-          `<script>
-             window.INITIAL_STATE = ${serialize(context.initialState, { isJSON: true })};
-           </script>`
-        );
-      }
-
-      firstChunk = false;
+  const context = {
+    title: 'Big Spaceship Vue Template',
+    url: req.url,
+  }
+  renderer.renderToString(context, (err, html) => {
+    if (err) {
+      return handleError(err);
     }
-
-    response.write(chunk);
+    res.send(html);
+    if (!isProd) {
+      console.log(`whole request: ${Date.now() - s}ms`);
+    }
   });
+}
 
-  renderStream.on('end', () => {
-    response.end(indexHTML.tail);
-    console.log(`Request completed in ${Date.now() - timestamp}ms`);
-  });
-
-  renderStream.on('error', error => { throw error });
+app.get('*', isProd ? render : (req, res) => {
+  readyPromise.then(() => render(req, res));
 });
 
 const port = process.env.PORT || 8080;
-application.listen(port, () => {
+app.listen(port, () => {
   const uri = `http://localhost:${port}`;
   console.log(`Server started on ${uri}`);
   opn(uri);

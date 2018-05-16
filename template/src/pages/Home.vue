@@ -7,17 +7,21 @@
 </template>
 
 <script>
-import Gif from '../components/Gif';
+import gif from '../components/Gif.vue';
 
 export default {
   name: 'home',
   components: {
-    Gif,
+    gif,
   },
   data() {
     return {
       msg: 'Vues from the ship',
     };
+  },
+  asyncData({ store }) {
+    const tag = 'big+spaceship';
+    return store.dispatch('FETCH_GIF', tag);
   },
 };
 </script>
